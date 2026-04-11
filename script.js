@@ -1,1 +1,1 @@
-console.log("Slot Machine initialized");
+console.log("Slot Machine UI loaded");
