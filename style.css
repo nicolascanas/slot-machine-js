@@ -138,3 +138,9 @@ body {
   border: none;
   cursor: pointer;
 }
+
+.win-reel {
+  box-shadow: 0 0 20px #4caf50, inset 0 0 10px #4caf50;
+  transform: scale(1.05);
+  transition: 0.3s;
+}

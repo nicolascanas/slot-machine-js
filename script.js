@@ -11,6 +11,9 @@ const gameScreen = document.getElementById("game");
 const loginBtn = document.getElementById("loginBtn");
 const usernameInput = document.getElementById("username");
 
+const spinSound = new Audio("sounds/spin.mp3");
+const winSound = new Audio("sounds/win.mp3");
+
 const spinCost = 50;
 const winReward = 150;
 const dailyBonus = 200;
@@ -25,11 +28,9 @@ let isSpinning = false;
 
 loginBtn.addEventListener("click", () => {
   const username = usernameInput.value.trim();
-
   if (!username) return;
 
   currentUser = username;
-
   loadUserData();
 
   loginScreen.style.display = "none";
@@ -81,6 +82,9 @@ spinButton.addEventListener("click", async () => {
   isSpinning = true;
   spinButton.disabled = true;
 
+  spinSound.currentTime = 0;
+  spinSound.play();
+
   if (currentUser !== "admin") {
     coins -= spinCost;
   }
@@ -99,7 +103,7 @@ spinButton.addEventListener("click", async () => {
 
     reel.classList.add("spinning");
 
-    await delay(500 + i * 300);
+    await delay(600 + i * 300);
 
     reel.classList.remove("spinning");
 
@@ -137,8 +141,10 @@ bonusBtn.addEventListener("click", () => {
 
 function checkWin(results) {
   resultText.classList.remove("win");
+  reels.forEach(r => r.classList.remove("win-reel"));
 
   if (results[0] === results[1] && results[1] === results[2]) {
+
     if (currentUser !== "admin") {
       coins += winReward;
     }
@@ -146,6 +152,11 @@ function checkWin(results) {
     resultText.textContent = "🎉 WIN!";
     resultText.style.color = "#4caf50";
     resultText.classList.add("win");
+
+    winSound.currentTime = 0;
+    winSound.play();
+
+    reels.forEach(r => r.classList.add("win-reel"));
 
   } else {
     resultText.textContent = "❌ LOSE";
