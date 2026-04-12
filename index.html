@@ -7,36 +7,42 @@
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div class="login-screen" id="loginScreen">
-    <h1>🎰 Slot Machine</h1>
 
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
+    <button id="signupBtn" class="top-right-btn">Sign Up</button>
 
-    <div class="auth-buttons">
-      <button id="loginBtn">Login</button>
-      <button id="signupBtn">Sign Up</button>
+    <div class="login-box">
+      <h1>🎰 Slot Machine</h1>
+
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+
+      <button id="loginBtn" class="primary-btn">Login</button>
     </div>
   </div>
 
+  <!-- GAME -->
   <div class="container" id="game" style="display:none;">
-    
-    <div class="top-bar">
+
+    <button id="logoutBtn" class="top-right-btn">Logout</button>
+
+    <button id="bonusBtn" class="bonus-btn">🎁 Daily Bonus</button>
+
+    <div class="game-card">
       <div class="balance">Coins: <span id="coins">0</span></div>
-      <button id="logoutBtn">Logout</button>
+
+      <div class="slot-machine">
+        <div class="reel"></div>
+        <div class="reel"></div>
+        <div class="reel"></div>
+      </div>
+
+      <button class="spin-button">SPIN</button>
+
+      <div class="result" id="result">Try your luck!</div>
     </div>
 
-    <button id="bonusBtn">🎁 Daily Bonus</button>
-
-    <div class="slot-machine">
-      <div class="reel"></div>
-      <div class="reel"></div>
-      <div class="reel"></div>
-    </div>
-
-    <button class="spin-button">SPIN</button>
-
-    <div class="result" id="result">Try your luck!</div>
   </div>
 
   <script src="script.js"></script>
