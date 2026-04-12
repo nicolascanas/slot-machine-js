@@ -6,22 +6,73 @@ const resultText = document.getElementById("result");
 const coinsDisplay = document.getElementById("coins");
 const bonusBtn = document.getElementById("bonusBtn");
 
+const loginScreen = document.getElementById("loginScreen");
+const gameScreen = document.getElementById("game");
+const loginBtn = document.getElementById("loginBtn");
+const usernameInput = document.getElementById("username");
+
 const spinCost = 50;
 const winReward = 150;
 const dailyBonus = 200;
 const cooldown = 24 * 60 * 60 * 1000;
 
-let coins = loadCoins();
-let lastBonus = loadLastBonus();
+let currentUser = null;
+let coins = 0;
+let lastBonus = 0;
 let isSpinning = false;
 
-updateCoins();
-updateBonusButton();
+/* LOGIN */
+
+loginBtn.addEventListener("click", () => {
+  const username = usernameInput.value.trim();
+
+  if (!username) return;
+
+  currentUser = username;
+
+  loadUserData();
+
+  loginScreen.style.display = "none";
+  gameScreen.style.display = "block";
+
+  updateCoins();
+  updateBonusButton();
+});
+
+function loadUserData() {
+  if (currentUser === "admin") {
+    coins = 999999;
+    lastBonus = 0;
+    return;
+  }
+
+  const data = JSON.parse(localStorage.getItem("user_" + currentUser));
+
+  if (data) {
+    coins = data.coins;
+    lastBonus = data.lastBonus;
+  } else {
+    coins = 500;
+    lastBonus = 0;
+    saveUserData();
+  }
+}
+
+function saveUserData() {
+  if (currentUser === "admin") return;
+
+  localStorage.setItem("user_" + currentUser, JSON.stringify({
+    coins,
+    lastBonus
+  }));
+}
+
+/* GAME */
 
 spinButton.addEventListener("click", async () => {
   if (isSpinning) return;
 
-  if (coins < spinCost) {
+  if (currentUser !== "admin" && coins < spinCost) {
     resultText.textContent = "💸 Not enough coins!";
     resultText.style.color = "#ff9800";
     return;
@@ -30,12 +81,15 @@ spinButton.addEventListener("click", async () => {
   isSpinning = true;
   spinButton.disabled = true;
 
-  coins -= spinCost;
-  saveCoins();
+  if (currentUser !== "admin") {
+    coins -= spinCost;
+  }
+
   updateCoins();
+  saveUserData();
 
   resultText.textContent = "Spinning...";
-  resultText.style.color = "#ffffff";
+  resultText.style.color = "#fff";
 
   let results = [];
 
@@ -49,8 +103,7 @@ spinButton.addEventListener("click", async () => {
 
     reel.classList.remove("spinning");
 
-    const randomIndex = Math.floor(Math.random() * symbols.length);
-    const randomSymbol = symbols[randomIndex];
+    const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
 
     symbolElement.textContent = randomSymbol;
     results.push(randomSymbol);
@@ -63,15 +116,15 @@ spinButton.addEventListener("click", async () => {
 });
 
 bonusBtn.addEventListener("click", () => {
+  if (currentUser === "admin") return;
+
   const now = Date.now();
 
   if (now - lastBonus >= cooldown) {
     coins += dailyBonus;
     lastBonus = now;
 
-    saveCoins();
-    saveLastBonus();
-
+    saveUserData();
     updateCoins();
     updateBonusButton();
 
@@ -80,11 +133,15 @@ bonusBtn.addEventListener("click", () => {
   }
 });
 
+/* LOGIC */
+
 function checkWin(results) {
   resultText.classList.remove("win");
 
   if (results[0] === results[1] && results[1] === results[2]) {
-    coins += winReward;
+    if (currentUser !== "admin") {
+      coins += winReward;
+    }
 
     resultText.textContent = "🎉 WIN!";
     resultText.style.color = "#4caf50";
@@ -95,7 +152,7 @@ function checkWin(results) {
     resultText.style.color = "#f44336";
   }
 
-  saveCoins();
+  saveUserData();
   updateCoins();
 }
 
@@ -104,6 +161,12 @@ function updateCoins() {
 }
 
 function updateBonusButton() {
+  if (currentUser === "admin") {
+    bonusBtn.disabled = true;
+    bonusBtn.textContent = "Admin mode";
+    return;
+  }
+
   const now = Date.now();
 
   if (now - lastBonus >= cooldown) {
@@ -117,22 +180,6 @@ function updateBonusButton() {
 
     bonusBtn.textContent = `Available in ${hours}h`;
   }
-}
-
-function saveCoins() {
-  localStorage.setItem("coins", coins);
-}
-
-function loadCoins() {
-  return parseInt(localStorage.getItem("coins")) || 500;
-}
-
-function saveLastBonus() {
-  localStorage.setItem("lastBonus", lastBonus);
-}
-
-function loadLastBonus() {
-  return parseInt(localStorage.getItem("lastBonus")) || 0;
 }
 
 function delay(ms) {
