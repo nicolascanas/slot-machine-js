@@ -1,4 +1,4 @@
-const symbols = ["🍒", "🍋", "🍊", "⭐", "💎"];
+const symbols = ["🍒", "🍋", "🍊", "⭐", "💎", "🔥"]; // 🔥 SCATTER
 
 const reels = document.querySelectorAll(".reel");
 const spinButton = document.querySelector(".spin-button");
@@ -22,6 +22,7 @@ let currentUser = null;
 let coins = 0;
 let lastBonus = 0;
 let isSpinning = false;
+let freeSpins = 0;
 
 /* LOGIN */
 
@@ -72,7 +73,7 @@ function saveUserData() {
 spinButton.addEventListener("click", async () => {
   if (isSpinning) return;
 
-  if (currentUser !== "admin" && coins < spinCost) {
+  if (freeSpins === 0 && currentUser !== "admin" && coins < spinCost) {
     resultText.textContent = "💸 Not enough coins!";
     return;
   }
@@ -85,12 +86,17 @@ spinButton.addEventListener("click", async () => {
   spinSound.currentTime = 0;
   spinSound.play();
 
-  if (currentUser !== "admin") coins -= spinCost;
+  if (freeSpins > 0) {
+    freeSpins--;
+  } else if (currentUser !== "admin") {
+    coins -= spinCost;
+  }
 
   updateCoins();
   saveUserData();
 
   let grid = [[], [], []];
+  let scatterCount = 0;
 
   for (let col = 0; col < reels.length; col++) {
     const reel = reels[col];
@@ -104,20 +110,33 @@ spinButton.addEventListener("click", async () => {
       const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
       symbolsElements[row].textContent = randomSymbol;
       grid[row][col] = randomSymbol;
+
+      if (randomSymbol === "🔥") scatterCount++;
     }
   }
 
-  evaluateGrid(grid);
+  evaluateGrid(grid, scatterCount);
 
   isSpinning = false;
   spinButton.disabled = false;
+
+  if (freeSpins > 0) {
+    setTimeout(() => spinButton.click(), 800);
+  }
 });
 
-/* PAYLINE LOGIC */
+/* LOGIC */
 
-function evaluateGrid(grid) {
+function evaluateGrid(grid, scatterCount) {
   let totalWin = 0;
   let winningLines = [];
+
+  // SCATTER trigger
+  if (scatterCount >= 3) {
+    freeSpins += 5;
+    resultText.textContent = "🔥 FREE SPINS ACTIVATED!";
+    resultText.style.color = "#ff9800";
+  }
 
   grid.forEach((row, rowIndex) => {
     const [a, b, c] = row;
@@ -147,9 +166,6 @@ function evaluateGrid(grid) {
     winSound.play();
 
     highlightWinningLines(winningLines);
-
-  } else {
-    resultText.textContent = "❌ LOSE";
   }
 
   saveUserData();
