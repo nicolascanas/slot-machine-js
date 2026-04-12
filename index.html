@@ -7,24 +7,26 @@
 </head>
 <body>
 
-  <!-- LOGIN -->
+  <!-- HOME -->
   <div class="login-screen" id="loginScreen">
     <h1>🎰 Slot Machine</h1>
+
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
+
+    <div class="auth-buttons">
+      <button id="loginBtn">Login</button>
+      <button id="signupBtn">Sign Up</button>
+    </div>
   </div>
 
   <!-- GAME -->
   <div class="container" id="game" style="display:none;">
-    <h1 class="title">🎰 Slot Machine</h1>
-
+    
     <div class="top-bar">
       <div class="balance">Coins: <span id="coins">0</span></div>
       <button id="logoutBtn">Logout</button>
     </div>
-
-    <button class="bonus-button" id="bonusBtn">Claim Daily Bonus</button>
 
     <div class="slot-machine">
       <div class="reel"></div>
