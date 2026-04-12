@@ -15,8 +15,6 @@ const spinSound = new Audio("sounds/spin.mp3");
 const winSound = new Audio("sounds/win.mp3");
 
 const spinCost = 50;
-const baseWin = 150;
-const jackpotWin = 500;
 const dailyBonus = 200;
 const cooldown = 24 * 60 * 60 * 1000;
 
@@ -69,14 +67,13 @@ function saveUserData() {
   }));
 }
 
-/* GAME */
+/* SPIN */
 
 spinButton.addEventListener("click", async () => {
   if (isSpinning) return;
 
   if (currentUser !== "admin" && coins < spinCost) {
     resultText.textContent = "💸 Not enough coins!";
-    resultText.style.color = "#ff9800";
     return;
   }
 
@@ -86,36 +83,76 @@ spinButton.addEventListener("click", async () => {
   spinSound.currentTime = 0;
   spinSound.play();
 
-  if (currentUser !== "admin") {
-    coins -= spinCost;
-  }
+  if (currentUser !== "admin") coins -= spinCost;
 
   updateCoins();
   saveUserData();
 
-  resultText.textContent = "Spinning...";
-  resultText.style.color = "#fff";
+  let grid = [[], [], []];
 
-  let results = [];
-
-  for (let i = 0; i < reels.length; i++) {
-    const reel = reels[i];
+  for (let col = 0; col < reels.length; col++) {
+    const reel = reels[col];
+    const symbolsElements = reel.querySelectorAll(".symbol");
 
     reel.classList.add("spinning");
-    await delay(600 + i * 300);
+    await delay(600 + col * 300);
     reel.classList.remove("spinning");
 
-    const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-
-    reel.querySelector(".symbol").textContent = randomSymbol;
-    results.push(randomSymbol);
+    for (let row = 0; row < 3; row++) {
+      const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+      symbolsElements[row].textContent = randomSymbol;
+      grid[row][col] = randomSymbol;
+    }
   }
 
-  checkWin(results);
+  evaluateGrid(grid);
 
   isSpinning = false;
   spinButton.disabled = false;
 });
+
+/* GRID LOGIC */
+
+function evaluateGrid(grid) {
+  resultText.classList.remove("win");
+  reels.forEach(r => r.classList.remove("win-reel"));
+
+  let totalWin = 0;
+
+  grid.forEach(row => {
+    const [a, b, c] = row;
+
+    const isJackpot = (a === "💎" && b === "💎" && c === "💎");
+
+    const isMatch =
+      (a === b && b === c) ||
+      (a === "⭐" || b === "⭐" || c === "⭐");
+
+    if (isJackpot) {
+      totalWin += 500;
+    } else if (isMatch) {
+      totalWin += 150;
+    }
+  });
+
+  if (totalWin > 0) {
+    coins += totalWin;
+
+    resultText.textContent = `🎉 WIN +${totalWin}`;
+    resultText.classList.add("win");
+
+    winSound.currentTime = 0;
+    winSound.play();
+
+    reels.forEach(r => r.classList.add("win-reel"));
+
+  } else {
+    resultText.textContent = "❌ LOSE";
+  }
+
+  saveUserData();
+  updateCoins();
+}
 
 /* BONUS */
 
@@ -131,59 +168,10 @@ bonusBtn.addEventListener("click", () => {
     saveUserData();
     updateCoins();
     updateBonusButton();
-
-    resultText.textContent = "🎁 Bonus claimed!";
-    resultText.style.color = "#4caf50";
   }
 });
 
-/* ADVANCED LOGIC */
-
-function checkWin(results) {
-  resultText.classList.remove("win");
-  reels.forEach(r => r.classList.remove("win-reel"));
-
-  const [a, b, c] = results;
-
-  let isJackpot = (a === "💎" && b === "💎" && c === "💎");
-
-  let isMatch =
-    (a === b && b === c) ||
-    (a === "⭐" || b === "⭐" || c === "⭐");
-
-  if (isJackpot) {
-    coins += jackpotWin;
-
-    resultText.textContent = "💎 JACKPOT!";
-    resultText.style.color = "#00e5ff";
-    triggerWinEffects();
-
-  } else if (isMatch) {
-    coins += baseWin;
-
-    resultText.textContent = "🎉 WIN!";
-    resultText.style.color = "#4caf50";
-    triggerWinEffects();
-
-  } else {
-    resultText.textContent = "❌ LOSE";
-    resultText.style.color = "#f44336";
-  }
-
-  saveUserData();
-  updateCoins();
-}
-
-function triggerWinEffects() {
-  resultText.classList.add("win");
-
-  winSound.currentTime = 0;
-  winSound.play();
-
-  reels.forEach(r => r.classList.add("win-reel"));
-}
-
-/* UTILS */
+/* UI */
 
 function updateCoins() {
   coinsDisplay.textContent = coins;
@@ -199,15 +187,9 @@ function updateBonusButton() {
   const now = Date.now();
 
   if (now - lastBonus >= cooldown) {
-    bonusBtn.disabled = false;
     bonusBtn.textContent = "Claim Daily Bonus";
   } else {
     bonusBtn.disabled = true;
-
-    const remaining = cooldown - (now - lastBonus);
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-
-    bonusBtn.textContent = `Available in ${hours}h`;
   }
 }
 
