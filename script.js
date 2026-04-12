@@ -1,9 +1,10 @@
-const symbols = ["🍒", "🍋", "🍊", "⭐", "💎", "🔥"];
+const symbols = ["🍒","🍋","🍊","⭐","💎","🔥"];
 
 const reels = document.querySelectorAll(".reel");
 const spinButton = document.querySelector(".spin-button");
 const resultText = document.getElementById("result");
 const coinsDisplay = document.getElementById("coins");
+const bonusBtn = document.getElementById("bonusBtn");
 
 const loginScreen = document.getElementById("loginScreen");
 const gameScreen = document.getElementById("game");
@@ -19,18 +20,29 @@ let currentUser = null;
 let coins = 0;
 let freeSpins = 0;
 let multiplier = 1;
-let isSpinning = false;
+let lastBonus = 0;
+
+const spinCost = 50;
+const bonusAmount = 200;
+const cooldown = 86400000;
+
+/* ADMIN AUTO CREATE */
+if (!localStorage.getItem("user_admin")) {
+  localStorage.setItem("user_admin", JSON.stringify({
+    password: "admin",
+    coins: 999999
+  }));
+}
 
 /* INIT REELS */
-
 reels.forEach(reel => {
   const strip = document.createElement("div");
   strip.classList.add("reel-strip");
 
-  for (let i = 0; i < 20; i++) {
-    const s = document.createElement("div");
+  for (let i=0;i<20;i++){
+    const s=document.createElement("div");
     s.classList.add("symbol");
-    s.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    s.textContent = symbols[Math.floor(Math.random()*symbols.length)];
     strip.appendChild(s);
   }
 
@@ -38,121 +50,138 @@ reels.forEach(reel => {
 });
 
 /* AUTH */
+signupBtn.onclick=()=>{
+  const u=usernameInput.value.trim();
+  const p=passwordInput.value.trim();
+  if(!u||!p)return;
 
-signupBtn.addEventListener("click", () => {
-  const user = usernameInput.value.trim();
-  const pass = passwordInput.value.trim();
-
-  if (!user || !pass) return;
-
-  if (localStorage.getItem("user_" + user)) {
-    alert("User already exists");
-    return;
+  if(localStorage.getItem("user_"+u)){
+    alert("User exists");return;
   }
 
-  localStorage.setItem("user_" + user, JSON.stringify({
-    password: pass,
-    coins: 500
+  localStorage.setItem("user_"+u,JSON.stringify({
+    password:p,
+    coins:500,
+    lastBonus:0
   }));
+};
 
-  alert("Account created!");
-});
+loginBtn.onclick=()=>{
+  const u=usernameInput.value.trim();
+  const p=passwordInput.value.trim();
 
-loginBtn.addEventListener("click", () => {
-  const user = usernameInput.value.trim();
-  const pass = passwordInput.value.trim();
-
-  const data = JSON.parse(localStorage.getItem("user_" + user));
-
-  if (!data || data.password !== pass) {
-    alert("Invalid login");
-    return;
+  const data=JSON.parse(localStorage.getItem("user_"+u));
+  if(!data||data.password!==p){
+    alert("Invalid");return;
   }
 
-  currentUser = user;
-  coins = data.coins;
+  currentUser=u;
+  coins=data.coins;
+  lastBonus=data.lastBonus||0;
 
-  loginScreen.style.display = "none";
-  gameScreen.style.display = "block";
+  loginScreen.style.display="none";
+  gameScreen.style.display="block";
 
   updateCoins();
-});
+};
 
-logoutBtn.addEventListener("click", () => {
-  currentUser = null;
-  gameScreen.style.display = "none";
-  loginScreen.style.display = "block";
-});
+logoutBtn.onclick=()=>{
+  currentUser=null;
+  gameScreen.style.display="none";
+  loginScreen.style.display="block";
+};
+
+/* BONUS */
+bonusBtn.onclick=()=>{
+  if(currentUser==="admin")return;
+
+  const now=Date.now();
+  if(now-lastBonus>=cooldown){
+    coins+=bonusAmount;
+    lastBonus=now;
+    save();
+    updateCoins();
+    resultText.textContent="🎁 Bonus claimed!";
+  }
+};
 
 /* SPIN */
-
-spinButton.addEventListener("click", async () => {
-  if (isSpinning) return;
-
-  isSpinning = true;
+spinButton.onclick=async()=>{
+  if(freeSpins===0 && currentUser!=="admin" && coins<spinCost){
+    resultText.textContent="No coins";
+    return;
+  }
 
   clearHighlights();
 
-  reels.forEach(r => r.classList.add("spinning"));
-
-  await delay(1200);
-
-  reels.forEach(r => r.classList.remove("spinning"));
-
-  let grid = [[], [], []];
-  let scatter = 0;
-
-  reels.forEach((reel, col) => {
-    const strip = reel.querySelector(".reel-strip");
-
-    for (let row = 0; row < 3; row++) {
-      const rand = symbols[Math.floor(Math.random() * symbols.length)];
-      strip.children[row].textContent = rand;
-      grid[row][col] = rand;
-
-      if (rand === "🔥") scatter++;
-    }
-  });
-
-  evaluate(grid, scatter);
-
-  isSpinning = false;
-});
-
-/* GAME LOGIC */
-
-function evaluate(grid, scatter) {
-  let win = 0;
-  let winningRows = [];
-
-  if (scatter >= 3) {
-    freeSpins += 5;
-    resultText.textContent = "🔥 FREE SPINS!";
+  if(freeSpins>0){
+    freeSpins--;
+  }else if(currentUser!=="admin"){
+    coins-=spinCost;
   }
 
-  grid.forEach((row, i) => {
-    const [a,b,c] = row;
+  updateCoins();
+  save();
 
-    if (a === b && b === c) {
-      win += 150;
-      winningRows.push(i);
+  reels.forEach(r=>r.classList.add("spinning"));
+  await delay(1200);
+  reels.forEach(r=>r.classList.remove("spinning"));
+
+  let grid=[[],[],[]];
+  let scatter=0;
+
+  reels.forEach((reel,col)=>{
+    const strip=reel.querySelector(".reel-strip");
+
+    for(let row=0;row<3;row++){
+      const rand=symbols[Math.floor(Math.random()*symbols.length)];
+      strip.children[row].textContent=rand;
+      grid[row][col]=rand;
+      if(rand==="🔥")scatter++;
     }
   });
 
-  if (win > 0) {
-    if (freeSpins > 0) {
-      win *= multiplier;
+  evaluate(grid,scatter);
+
+  if(freeSpins>0){
+    setTimeout(()=>spinButton.click(),800);
+  }else{
+    multiplier=1;
+  }
+};
+
+/* GAME */
+function evaluate(grid,scatter){
+  let win=0;
+  let rows=[];
+
+  if(scatter>=3){
+    freeSpins+=5;
+    resultText.textContent="🔥 FREE SPINS!";
+  }
+
+  grid.forEach((r,i)=>{
+    const[a,b,c]=r;
+    if(a===b&&b===c){
+      win+=150;
+      rows.push(i);
+    }
+  });
+
+  if(win>0){
+    if(freeSpins>0){
+      win*=multiplier;
       multiplier++;
     }
 
-    coins += win;
+    coins+=win;
 
-    resultText.textContent = `🎉 WIN +${win} (x${multiplier})`;
+    resultText.textContent=`🎉 WIN +${win} (x${multiplier})`;
     resultText.classList.add("win");
 
-    highlight(winningRows);
-  } else {
-    resultText.textContent = "❌ LOSE";
+    highlight(rows);
+  }else{
+    resultText.textContent="❌ LOSE";
   }
 
   save();
@@ -160,39 +189,37 @@ function evaluate(grid, scatter) {
 }
 
 /* HIGHLIGHT */
-
-function highlight(rows) {
-  rows.forEach(r => {
-    reels.forEach(reel => {
+function highlight(rows){
+  rows.forEach(r=>{
+    reels.forEach(reel=>{
       reel.querySelectorAll(".symbol")[r].classList.add("win-symbol");
     });
   });
 
-  reels.forEach(r => r.classList.add("win-reel"));
+  reels.forEach(r=>r.classList.add("win-reel"));
 }
 
-function clearHighlights() {
-  document.querySelectorAll(".symbol").forEach(s => s.classList.remove("win-symbol"));
-  reels.forEach(r => r.classList.remove("win-reel"));
+function clearHighlights(){
+  document.querySelectorAll(".symbol").forEach(s=>s.classList.remove("win-symbol"));
+  reels.forEach(r=>r.classList.remove("win-reel"));
 }
 
 /* SAVE */
+function save(){
+  if(!currentUser)return;
 
-function save() {
-  if (!currentUser) return;
+  const data=JSON.parse(localStorage.getItem("user_"+currentUser));
+  data.coins=coins;
+  data.lastBonus=lastBonus;
 
-  const data = JSON.parse(localStorage.getItem("user_" + currentUser));
-  data.coins = coins;
-
-  localStorage.setItem("user_" + currentUser, JSON.stringify(data));
+  localStorage.setItem("user_"+currentUser,JSON.stringify(data));
 }
 
-/* UTILS */
-
-function updateCoins() {
-  coinsDisplay.textContent = coins;
+/* UI */
+function updateCoins(){
+  coinsDisplay.textContent=coins;
 }
 
-function delay(ms) {
-  return new Promise(r => setTimeout(r, ms));
+function delay(ms){
+  return new Promise(r=>setTimeout(r,ms));
 }

@@ -1,3 +1,5 @@
+/* RESET */
+
 * {
   margin: 0;
   padding: 0;
@@ -28,16 +30,11 @@ body {
   border: none;
 }
 
-.auth-buttons {
-  margin-top: 10px;
-}
-
 .auth-buttons button {
   margin: 5px;
   padding: 10px 20px;
   border-radius: 20px;
   border: none;
-  cursor: pointer;
 }
 
 /* GAME */
@@ -49,20 +46,23 @@ body {
   backdrop-filter: blur(10px);
 }
 
-/* TOP BAR */
-
 .top-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 #logoutBtn {
-  padding: 6px 15px;
+  padding: 5px 10px;
+}
+
+/* BONUS */
+
+#bonusBtn {
+  margin-bottom: 10px;
+  padding: 8px 15px;
   border-radius: 10px;
   border: none;
-  cursor: pointer;
 }
 
 /* SLOT */
@@ -77,7 +77,7 @@ body {
   width: 90px;
   height: 140px;
   overflow: hidden;
-  background: #000;
+  background: black;
   border-radius: 12px;
   position: relative;
 }
@@ -90,51 +90,31 @@ body {
 .symbol {
   height: 45px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   font-size: 1.8rem;
 }
 
-/* REAL SPIN */
+/* ANIMATION */
 
 .spinning .reel-strip {
   animation: spin 0.4s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: translateY(0); }
   100% { transform: translateY(-45px); }
 }
 
-/* BUTTON */
-
-.spin-button {
-  margin-top: 15px;
-  padding: 12px 30px;
-  border-radius: 25px;
-  border: none;
-  cursor: pointer;
-}
-
-/* RESULT */
-
-.result {
-  margin-top: 10px;
-  font-size: 1.2rem;
-}
-
-/* WIN GLOW */
+/* WIN */
 
 .win {
-  animation: glow 0.8s infinite alternate;
+  animation: glow 0.7s infinite alternate;
 }
 
 @keyframes glow {
   from { text-shadow: 0 0 5px #4caf50; }
   to { text-shadow: 0 0 20px #4caf50; }
 }
-
-/* SYMBOL WIN */
 
 .win-symbol {
   animation: pop 0.5s infinite alternate;
@@ -145,8 +125,13 @@ body {
   to { transform: scale(1.2); }
 }
 
-/* REEL WIN */
-
 .win-reel {
   box-shadow: 0 0 20px #4caf50;
+}
+
+/* BUTTON */
+
+.spin-button {
+  margin-top: 10px;
+  padding: 10px 25px;
 }
