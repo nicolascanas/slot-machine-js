@@ -1,4 +1,4 @@
-const symbols = ["🍒", "🍋", "🍊", "⭐", "💎", "🔥"]; // 🔥 SCATTER
+const symbols = ["🍒", "🍋", "🍊", "⭐", "💎", "🔥"];
 
 const reels = document.querySelectorAll(".reel");
 const spinButton = document.querySelector(".spin-button");
@@ -22,7 +22,9 @@ let currentUser = null;
 let coins = 0;
 let lastBonus = 0;
 let isSpinning = false;
+
 let freeSpins = 0;
+let multiplier = 1;
 
 /* LOGIN */
 
@@ -122,6 +124,8 @@ spinButton.addEventListener("click", async () => {
 
   if (freeSpins > 0) {
     setTimeout(() => spinButton.click(), 800);
+  } else {
+    multiplier = 1; // reset quando acaba
   }
 });
 
@@ -131,7 +135,6 @@ function evaluateGrid(grid, scatterCount) {
   let totalWin = 0;
   let winningLines = [];
 
-  // SCATTER trigger
   if (scatterCount >= 3) {
     freeSpins += 5;
     resultText.textContent = "🔥 FREE SPINS ACTIVATED!";
@@ -157,9 +160,14 @@ function evaluateGrid(grid, scatterCount) {
   });
 
   if (totalWin > 0) {
+    if (freeSpins > 0) {
+      totalWin *= multiplier;
+      multiplier++;
+    }
+
     coins += totalWin;
 
-    resultText.textContent = `🎉 WIN +${totalWin}`;
+    resultText.textContent = `🎉 WIN +${totalWin} (x${multiplier})`;
     resultText.classList.add("win");
 
     winSound.currentTime = 0;
