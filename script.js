@@ -81,10 +81,15 @@ bonusBtn.addEventListener("click", () => {
 });
 
 function checkWin(results) {
+  resultText.classList.remove("win");
+
   if (results[0] === results[1] && results[1] === results[2]) {
     coins += winReward;
+
     resultText.textContent = "🎉 WIN!";
     resultText.style.color = "#4caf50";
+    resultText.classList.add("win");
+
   } else {
     resultText.textContent = "❌ LOSE";
     resultText.style.color = "#f44336";
