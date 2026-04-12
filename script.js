@@ -77,6 +77,8 @@ spinButton.addEventListener("click", async () => {
     return;
   }
 
+  clearHighlights();
+
   isSpinning = true;
   spinButton.disabled = true;
 
@@ -111,15 +113,13 @@ spinButton.addEventListener("click", async () => {
   spinButton.disabled = false;
 });
 
-/* GRID LOGIC */
+/* PAYLINE LOGIC */
 
 function evaluateGrid(grid) {
-  resultText.classList.remove("win");
-  reels.forEach(r => r.classList.remove("win-reel"));
-
   let totalWin = 0;
+  let winningLines = [];
 
-  grid.forEach(row => {
+  grid.forEach((row, rowIndex) => {
     const [a, b, c] = row;
 
     const isJackpot = (a === "💎" && b === "💎" && c === "💎");
@@ -130,8 +130,10 @@ function evaluateGrid(grid) {
 
     if (isJackpot) {
       totalWin += 500;
+      winningLines.push(rowIndex);
     } else if (isMatch) {
       totalWin += 150;
+      winningLines.push(rowIndex);
     }
   });
 
@@ -144,7 +146,7 @@ function evaluateGrid(grid) {
     winSound.currentTime = 0;
     winSound.play();
 
-    reels.forEach(r => r.classList.add("win-reel"));
+    highlightWinningLines(winningLines);
 
   } else {
     resultText.textContent = "❌ LOSE";
@@ -152,6 +154,27 @@ function evaluateGrid(grid) {
 
   saveUserData();
   updateCoins();
+}
+
+/* HIGHLIGHT */
+
+function highlightWinningLines(lines) {
+  lines.forEach(rowIndex => {
+    reels.forEach(reel => {
+      const symbols = reel.querySelectorAll(".symbol");
+      symbols[rowIndex].classList.add("win-symbol");
+    });
+  });
+
+  reels.forEach(r => r.classList.add("win-reel"));
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".symbol").forEach(s => {
+    s.classList.remove("win-symbol");
+  });
+
+  reels.forEach(r => r.classList.remove("win-reel"));
 }
 
 /* BONUS */
