@@ -80,3 +80,23 @@ body {
   font-size: 1.1rem;
   opacity: 0.9;
 }
+
+.bonus-button {
+  margin-bottom: 15px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.bonus-button:hover {
+  transform: scale(1.05);
+}
+
+.bonus-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
