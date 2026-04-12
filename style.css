@@ -14,7 +14,7 @@ body {
   align-items: center;
 }
 
-/* TOP RIGHT BUTTON */
+/* TOP BUTTON */
 
 .top-right-btn {
   position: absolute;
@@ -25,16 +25,16 @@ body {
   border: none;
   background: #e0e0e0;
   cursor: pointer;
+  transition: 0.2s;
 }
+
+.top-right-btn:hover { transform: scale(1.05); }
+.top-right-btn:active { transform: scale(0.95); }
 
 /* LOGIN */
 
 .login-box {
   text-align: center;
-}
-
-.login-box h1 {
-  margin-bottom: 20px;
 }
 
 .login-box input {
@@ -53,13 +53,13 @@ body {
   border-radius: 20px;
   border: none;
   cursor: pointer;
+  transition: 0.2s;
 }
+
+.primary-btn:hover { transform: scale(1.05); }
+.primary-btn:active { transform: scale(0.95); }
 
 /* GAME */
-
-.container {
-  text-align: center;
-}
 
 .bonus-btn {
   margin-bottom: 20px;
@@ -67,7 +67,12 @@ body {
   border-radius: 20px;
   border: none;
   background: #e0e0e0;
+  cursor: pointer;
+  transition: 0.2s;
 }
+
+.bonus-btn:hover { transform: scale(1.05); }
+.bonus-btn:active { transform: scale(0.95); }
 
 /* CARD */
 
@@ -77,6 +82,21 @@ body {
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
   width: 300px;
+  text-align: center;
+}
+
+/* BET */
+
+.bet-container {
+  margin: 10px 0;
+}
+
+.bet-container input {
+  width: 80px;
+  padding: 5px;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
 }
 
 /* SLOT */
@@ -110,7 +130,7 @@ body {
   font-size: 1.6rem;
 }
 
-/* ANIMATION */
+/* SPIN */
 
 .spinning .reel-strip {
   animation: spin 0.3s linear infinite;
@@ -128,7 +148,11 @@ body {
   border: none;
   background: #e0e0e0;
   cursor: pointer;
+  transition: 0.2s;
 }
+
+.spin-button:hover { transform: scale(1.05); }
+.spin-button:active { transform: scale(0.95); }
 
 /* RESULT */
 

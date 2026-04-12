@@ -5,6 +5,7 @@ const spinButton = document.querySelector(".spin-button");
 const resultText = document.getElementById("result");
 const coinsDisplay = document.getElementById("coins");
 const bonusBtn = document.getElementById("bonusBtn");
+const betInput = document.getElementById("betInput");
 
 const loginScreen = document.getElementById("loginScreen");
 const gameScreen = document.getElementById("game");
@@ -18,15 +19,15 @@ const passwordInput = document.getElementById("password");
 
 let currentUser = null;
 let coins = 0;
+let displayedCoins = 0;
 let freeSpins = 0;
 let multiplier = 1;
 let lastBonus = 0;
 
-const spinCost = 50;
 const bonusAmount = 200;
 const cooldown = 86400000;
 
-/* ADMIN AUTO CREATE */
+/* ADMIN */
 if (!localStorage.getItem("user_admin")) {
   localStorage.setItem("user_admin", JSON.stringify({
     password: "admin",
@@ -53,6 +54,7 @@ reels.forEach(reel => {
 signupBtn.onclick=()=>{
   const u=usernameInput.value.trim();
   const p=passwordInput.value.trim();
+
   if(!u||!p)return;
 
   if(localStorage.getItem("user_"+u)){
@@ -64,6 +66,8 @@ signupBtn.onclick=()=>{
     coins:500,
     lastBonus:0
   }));
+
+  alert("Account created!");
 };
 
 loginBtn.onclick=()=>{
@@ -71,12 +75,14 @@ loginBtn.onclick=()=>{
   const p=passwordInput.value.trim();
 
   const data=JSON.parse(localStorage.getItem("user_"+u));
+
   if(!data||data.password!==p){
-    alert("Invalid");return;
+    alert("Invalid login");return;
   }
 
   currentUser=u;
   coins=data.coins;
+  displayedCoins = coins;
   lastBonus=data.lastBonus||0;
 
   loginScreen.style.display="none";
@@ -96,18 +102,23 @@ bonusBtn.onclick=()=>{
   if(currentUser==="admin")return;
 
   const now=Date.now();
+
   if(now-lastBonus>=cooldown){
     coins+=bonusAmount;
     lastBonus=now;
+
     save();
     updateCoins();
+
     resultText.textContent="🎁 Bonus claimed!";
   }
 };
 
 /* SPIN */
 spinButton.onclick=async()=>{
-  if(freeSpins===0 && currentUser!=="admin" && coins<spinCost){
+  let bet = Math.max(25, parseInt(betInput.value) || 25);
+
+  if(freeSpins===0 && currentUser!=="admin" && coins < bet){
     resultText.textContent="No coins";
     return;
   }
@@ -117,7 +128,7 @@ spinButton.onclick=async()=>{
   if(freeSpins>0){
     freeSpins--;
   }else if(currentUser!=="admin"){
-    coins-=spinCost;
+    coins-=bet;
   }
 
   updateCoins();
@@ -137,11 +148,12 @@ spinButton.onclick=async()=>{
       const rand=symbols[Math.floor(Math.random()*symbols.length)];
       strip.children[row].textContent=rand;
       grid[row][col]=rand;
+
       if(rand==="🔥")scatter++;
     }
   });
 
-  evaluate(grid,scatter);
+  evaluate(grid,scatter,bet);
 
   if(freeSpins>0){
     setTimeout(()=>spinButton.click(),800);
@@ -151,7 +163,7 @@ spinButton.onclick=async()=>{
 };
 
 /* GAME */
-function evaluate(grid,scatter){
+function evaluate(grid,scatter,bet){
   let win=0;
   let rows=[];
 
@@ -162,8 +174,9 @@ function evaluate(grid,scatter){
 
   grid.forEach((r,i)=>{
     const[a,b,c]=r;
+
     if(a===b&&b===c){
-      win+=150;
+      win+=150*(bet/25);
       rows.push(i);
     }
   });
@@ -217,7 +230,27 @@ function save(){
 
 /* UI */
 function updateCoins(){
-  coinsDisplay.textContent=coins;
+  animateCoins(displayedCoins, coins);
+}
+
+function animateCoins(start,end){
+  const duration=400;
+  const startTime=performance.now();
+
+  function update(t){
+    const progress=Math.min((t-startTime)/duration,1);
+    const value=Math.floor(start+(end-start)*progress);
+
+    coinsDisplay.textContent=value;
+
+    if(progress<1){
+      requestAnimationFrame(update);
+    } else {
+      displayedCoins=end;
+    }
+  }
+
+  requestAnimationFrame(update);
 }
 
 function delay(ms){
