@@ -100,3 +100,13 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.spinning {
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}

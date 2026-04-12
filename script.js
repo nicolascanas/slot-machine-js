@@ -9,35 +9,57 @@ const bonusBtn = document.getElementById("bonusBtn");
 const spinCost = 50;
 const winReward = 150;
 const dailyBonus = 200;
-const cooldown = 24 * 60 * 60 * 1000; // 24h
+const cooldown = 24 * 60 * 60 * 1000;
 
 let coins = loadCoins();
 let lastBonus = loadLastBonus();
+let isSpinning = false;
 
 updateCoins();
 updateBonusButton();
 
-spinButton.addEventListener("click", () => {
+spinButton.addEventListener("click", async () => {
+  if (isSpinning) return;
+
   if (coins < spinCost) {
     resultText.textContent = "💸 Not enough coins!";
     resultText.style.color = "#ff9800";
     return;
   }
 
+  isSpinning = true;
+  spinButton.disabled = true;
+
   coins -= spinCost;
   saveCoins();
+  updateCoins();
+
+  resultText.textContent = "Spinning...";
+  resultText.style.color = "#ffffff";
 
   let results = [];
 
-  reels.forEach(reel => {
+  for (let i = 0; i < reels.length; i++) {
+    const reel = reels[i];
+    const symbolElement = reel.querySelector(".symbol");
+
+    reel.classList.add("spinning");
+
+    await delay(500 + i * 300);
+
+    reel.classList.remove("spinning");
+
     const randomIndex = Math.floor(Math.random() * symbols.length);
     const randomSymbol = symbols[randomIndex];
 
-    reel.querySelector(".symbol").textContent = randomSymbol;
+    symbolElement.textContent = randomSymbol;
     results.push(randomSymbol);
-  });
+  }
 
   checkWin(results);
+
+  isSpinning = false;
+  spinButton.disabled = false;
 });
 
 bonusBtn.addEventListener("click", () => {
@@ -106,4 +128,8 @@ function saveLastBonus() {
 
 function loadLastBonus() {
   return parseInt(localStorage.getItem("lastBonus")) || 0;
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
