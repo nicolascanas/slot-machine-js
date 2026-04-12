@@ -15,7 +15,8 @@ const spinSound = new Audio("sounds/spin.mp3");
 const winSound = new Audio("sounds/win.mp3");
 
 const spinCost = 50;
-const winReward = 150;
+const baseWin = 150;
+const jackpotWin = 500;
 const dailyBonus = 200;
 const cooldown = 24 * 60 * 60 * 1000;
 
@@ -99,17 +100,14 @@ spinButton.addEventListener("click", async () => {
 
   for (let i = 0; i < reels.length; i++) {
     const reel = reels[i];
-    const symbolElement = reel.querySelector(".symbol");
 
     reel.classList.add("spinning");
-
     await delay(600 + i * 300);
-
     reel.classList.remove("spinning");
 
     const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
 
-    symbolElement.textContent = randomSymbol;
+    reel.querySelector(".symbol").textContent = randomSymbol;
     results.push(randomSymbol);
   }
 
@@ -118,6 +116,8 @@ spinButton.addEventListener("click", async () => {
   isSpinning = false;
   spinButton.disabled = false;
 });
+
+/* BONUS */
 
 bonusBtn.addEventListener("click", () => {
   if (currentUser === "admin") return;
@@ -137,26 +137,33 @@ bonusBtn.addEventListener("click", () => {
   }
 });
 
-/* LOGIC */
+/* ADVANCED LOGIC */
 
 function checkWin(results) {
   resultText.classList.remove("win");
   reels.forEach(r => r.classList.remove("win-reel"));
 
-  if (results[0] === results[1] && results[1] === results[2]) {
+  const [a, b, c] = results;
 
-    if (currentUser !== "admin") {
-      coins += winReward;
-    }
+  let isJackpot = (a === "💎" && b === "💎" && c === "💎");
+
+  let isMatch =
+    (a === b && b === c) ||
+    (a === "⭐" || b === "⭐" || c === "⭐");
+
+  if (isJackpot) {
+    coins += jackpotWin;
+
+    resultText.textContent = "💎 JACKPOT!";
+    resultText.style.color = "#00e5ff";
+    triggerWinEffects();
+
+  } else if (isMatch) {
+    coins += baseWin;
 
     resultText.textContent = "🎉 WIN!";
     resultText.style.color = "#4caf50";
-    resultText.classList.add("win");
-
-    winSound.currentTime = 0;
-    winSound.play();
-
-    reels.forEach(r => r.classList.add("win-reel"));
+    triggerWinEffects();
 
   } else {
     resultText.textContent = "❌ LOSE";
@@ -166,6 +173,17 @@ function checkWin(results) {
   saveUserData();
   updateCoins();
 }
+
+function triggerWinEffects() {
+  resultText.classList.add("win");
+
+  winSound.currentTime = 0;
+  winSound.play();
+
+  reels.forEach(r => r.classList.add("win-reel"));
+}
+
+/* UTILS */
 
 function updateCoins() {
   coinsDisplay.textContent = coins;
