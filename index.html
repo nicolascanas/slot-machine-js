@@ -27,7 +27,7 @@
 
     <button id="logoutBtn" class="top-right-btn">Logout</button>
 
-    <button id="bonusBtn" class="bonus-btn">🎁 Daily Bonus</button>
+    <button id="bonusBtn" class="bonus-fixed">🎁 Daily Bonus</button>
 
     <div class="game-card">
 
@@ -35,8 +35,9 @@
 
       <!-- BET -->
       <div class="bet-container">
-        <span>Bet:</span>
-        <input type="number" id="betInput" value="50" min="25" step="25">
+        <label>Bet Amount</label>
+        <input type="number" id="betInput" value="50" min="50" step="25">
+        <small id="betError"></small>
       </div>
 
       <div class="slot-machine">
